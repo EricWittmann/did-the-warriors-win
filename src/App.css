@@ -1,0 +1,16 @@
+.App {
+    margin-top: 150px;
+}
+
+#title {
+    font-size: 24px;
+}
+
+.win-result {
+    font-weight: bold;
+}
+
+.game-date {
+    font-style: italic;
+    font-size: 12px;
+}
