@@ -9,6 +9,10 @@ import {
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 import axios from 'axios';
 
+function filterGames(games) {
+    return games.filter(game => game.home_team_score !== game.visitor_team_score);
+}
+
 function sortGames(games) {
     return games.sort((game1, game2) => game1.date > game2.date ? -1 : 1);
 }
@@ -32,17 +36,21 @@ function App() {
 
       axios.get(apiEndpoint)
           .then(res => {
-              const games = sortGames(res.data.data);
-              const latestGame = games[0];
-              console.info("Latest game: ", latestGame);
-              let didWin = false;
-              if (latestGame.home_team.id === 10) {
-                  didWin = latestGame.home_team_score > latestGame.visitor_team_score;
+              const games = sortGames(filterGames(res.data.data));
+              if (games.length === 0) {
+                  setDidWin("dnp");
               } else {
-                  didWin = latestGame.home_team_score < latestGame.visitor_team_score;
+                  const latestGame = games[0];
+                  console.info("Latest game: ", latestGame);
+                  let didWin = false;
+                  if (latestGame.home_team.id === 10) {
+                      didWin = latestGame.home_team_score > latestGame.visitor_team_score;
+                  } else {
+                      didWin = latestGame.home_team_score < latestGame.visitor_team_score;
+                  }
+                  setDidWin(didWin ? "yes" : "no");
+                  setGameDate(latestGame.date.split("T")[0]);
               }
-              setDidWin(didWin ? "yes" : "no");
-              setGameDate(latestGame.date.split("T")[0]);
           });
   }, [])
   return (
@@ -55,7 +63,12 @@ function App() {
         <EmptyStateBody>
             <div className="win-result">
                 {
-                    didWin === "checking" ? "Hang on, checking..." : (didWin === "yes" ? "Yes, they did!" : "No, they did not. :(")
+                    didWin === "checking" ? "Hang on, checking..." : (
+                        didWin === "yes" ? "Yes, they did!" : (
+                            didWin === "dnp" ? "They didn't even play. ¯\\_(ツ)_/¯" :
+                                "No, they did not. :("
+                        )
+                    )
                 }
             </div>
             <div className="game-date">
